@@ -2,46 +2,77 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"os"
 	"time"
+	"bytes"
+	"log"
+	"os"
 
-	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/chuckha/renthelper/slack"
 	"golang.org/x/net/publicsuffix"
 )
 
 const (
 	unavailable        = "unavailable"
-	slackChannelIDEnv  = "SLACK_CHANNEL_ID"
-	slackOauthTokenEnv = "SLACK_OAUTH_TOKEN"
+	event              = ""
+	IFTTTkey           = ""
 )
 
 func main() {
-	lambda.Start(handleRequest)
+  var s,e = getMessage()
+  var NotificationResponse = ""
+  var runTime = time.Now().Format("2006-01-02 15:04:05")
+  if s != "Nothing available" {
+    fmt.Println("Sending Notification")
+    NotificationResponse = sendNotice(s,e)
+  } else {
+    fmt.Println("No notification Sent")
+    NotificationResponse = "Nothing Sent"
+  }
+
+  // If the file doesn't exist, create it, or append to the file
+	f, err := os.OpenFile("marriage.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := f.Write([]byte("Time: "+runTime+"\nMessage: "+s+"\n"+NotificationResponse+"\n\n")); err != nil {
+		f.Close() // ignore error; Write error takes precedence
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+
 }
 
-func handleRequest() (string, error) {
-	SlackChannelID := os.Getenv(slackChannelIDEnv)
-	SlackOauthToken := os.Getenv(slackOauthTokenEnv)
+func sendNotice(s string,e error) (string){
+  url := "https://maker.ifttt.com/trigger/"+event+"/with/key/"+IFTTTkey
+  fmt.Println("URL:>", url)
 
-	if SlackChannelID == "" || SlackOauthToken == "" {
-		return "", errors.New("must set SLACK_CHANNEL_ID and SLACK_OAUTH_TOKEN")
-	}
-	message, err := getMessage()
-	if err != nil {
-		return "", err
-	}
-	sc := slack.NewClient(SlackOauthToken)
-	if err := sc.Post(SlackChannelID, message); err != nil {
-		return "", errors.New("failed to post to slack")
-	}
-	return "", nil
+  var jsonStr = []byte(`{"value1":"`+s+`"}`)
+  req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+  req.Header.Set("X-Custom-Header", "myvalue")
+  req.Header.Set("Content-Type", "application/json")
+
+  client := &http.Client{}
+  resp, err := client.Do(req)
+  if err != nil {
+      panic(err)
+  }
+  defer resp.Body.Close()
+
+  fmt.Println("response Status:", resp.Status)
+  fmt.Println("response Headers:", resp.Header)
+  body, _ := ioutil.ReadAll(resp.Body)
+  fmt.Println("response Body:", string(body))
+
+  var NotificationResponse = "response Status:" + resp.Status + "\nresponse Body:" + string(body)
+
+  return NotificationResponse
 }
 
 func getMessage() (string, error) {
@@ -61,7 +92,7 @@ func getMessage() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(u.String())
+	//fmt.Println(u.String())
 	headers := http.Header{}
 	headers.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	headers.Set("Host", "calendly.com")
@@ -79,13 +110,13 @@ func getMessage() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(resp)
+	//fmt.Println(resp)
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
 	responseData := &response{}
-	fmt.Fprintln(os.Stderr, string(data))
+	//fmt.Fprintln(os.Stderr, string(data))
 	if err := json.Unmarshal(data, responseData); err != nil {
 		return "", err
 	}

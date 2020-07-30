@@ -1,41 +1,70 @@
-# marriage
+# Download, Build, and Run on Raspberry Pi
 
-# Lambda function set up
+## Download Project
+```
+sudo git clone https://github.com/kylejramstad/marriage.git
+```
 
-## For the trusting
+## Install software
+### Ensure you have git installed on your Raspberry Pi
+```
+sudo apt-get install git
+```
 
-This project is built and uploaded to s3 as a lambda zip.
+### Install Go on your Raspberry Pi
+```
+sudo apt-get install golang
+```
 
-1. Figure out your slack channel ID.
-2. Figure out your slack oauth token.
-3. Upload the cloudformation.yaml file to
-   https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks?filteringText=&filteringStatus=active&viewNested=true&hideStacks=false
-4. Supply the non-default fields.
-5. Click through the forms.
-6. Wait and watch slack!
+### Install Dependancies
+```
+sudo go get golang.org/x/net/publicsuffix
+```
 
-## For the untrusting
+## Connect with IFTTT
+### Make a webhooks event
+Go to [IFTTT](https://ifttt.com/create) and create an event.
+1. Click "This" and search for "webhooks"
+1. Click "Receive a web request"
+1. Give your webhooks event a name like "marriage"
+1. Click "That" and search for "email"
+1. Click "Send me an email"
+	1. You can send an email to your phone number (send a text message) by following the instructions at [https://www.androidpolice.com/2018/07/28/get-around-ifttts-cap-sending-sms-messages/](https://www.androidpolice.com/2018/07/28/get-around-ifttts-cap-sending-sms-messages/)
+1. Change the Subject to something like "Cupid Project" change the body to 
+	1. ```There is a Project Cupid appointment available for the following date(s): {{Value1}}```
+1. Click "Create Action"
 
-1. Gain trust in this code.
-2. Build it and upload to s3.
-3. Follow the steps above for the trusting, except replace the default values in
-   the cloud formation template with your custom values.
+#### Find your IFTTT webhooks key
+Go to the [IFTTT Webhooks page](https://ifttt.com/maker_webhooks) and click "Documentation".
+Here you will find your key.
 
-## Build
+Open main.go with your favorite text editor. Example: ```nano main.go```
+Change the values of event and IFTTTkey to match your webhooks event name and your webhooks key.
+```
+const (
+	unavailable        = "unavailable"
+	event              = ""
+	IFTTTkey           = ""
+)
+```
+Save the file and return to the command line.
 
-This uses a Makefile to help build. Run `make build` to build the resources and
-`make clean` to clean everything up.
+## Build and Run Project
+### Build
+```
+sudo go build main.go
+```
 
-## Slack set up
+### Set up Crontab to Run Program Automatically
+```crontab -e```
+Add this line to the end of the file
+```0 * * * * ~/main```
+This will run the program once every hour.
+If you want to change this amount go to [Crontab Guru](https://crontab.guru/)
 
-1. [Go here](https://api.slack.com/apps?new_app=1)
-0. Enter your bot name, something like `Project Cupid Bot`, you can change this later if you like
-0. Select the workspace to use (you will have to be signed in)
-0. Select your project which will bring you to the configuration page
-0. Under `Add features and functionality`
+## View Logs to Ensure Proper Running
+```
+cat marriage.log
+```
+This will print out a log of all the times the program ran and it's results. This can be used to verify the programs operation.
 
-    1. Make sure `Bots` gets marked
-    0. Under `Permissions` set the `chat:write` scope under `Bot Token Scopes`
-
-0. Grab the `Bot User Oauth Token` for later
-0. Find the channel ID by going to your workspace and joining the channel and looking at the URL: `https://app.slack.com/client/<workspace_id>/<channel_id>`
