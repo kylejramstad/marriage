@@ -1,9 +1,5 @@
 # Download, Build, and Run on Raspberry Pi
-
-## Download Project
-```
-sudo git clone https://github.com/kylejramstad/marriage.git
-```
+Follow these instructions to install the necessary software to build and run the code on your own Raspberry Pi.
 
 ## Install software
 ### Ensure you have git installed on your Raspberry Pi
@@ -19,6 +15,10 @@ sudo apt-get install golang
 ### Install Dependancies
 ```
 sudo go get golang.org/x/net/publicsuffix
+```
+## Download Project
+```
+sudo git clone https://github.com/kylejramstad/marriage.git
 ```
 
 ## Connect with IFTTT
