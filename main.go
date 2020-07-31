@@ -25,6 +25,7 @@ func main() {
   var s,e = getMessage()
   var NotificationResponse = ""
   var runTime = time.Now().Format("2006-01-02 15:04:05")
+  
   if s != "Nothing available" {
     fmt.Println("Sending Notification")
     NotificationResponse = sendNotice(s,e)
@@ -53,7 +54,7 @@ func sendNotice(s string,e error) (string){
   url := "https://maker.ifttt.com/trigger/"+event+"/with/key/"+IFTTTkey
   fmt.Println("URL:>", url)
 
-  var jsonStr = []byte(`{"value1":"`+s+`"}`)
+  var jsonStr = []byte("{\"value1\":\""+s+"\"}")
   req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
   req.Header.Set("X-Custom-Header", "myvalue")
   req.Header.Set("Content-Type", "application/json")
@@ -123,9 +124,9 @@ func getMessage() (string, error) {
 	message := ""
 	for _, day := range responseData.Days {
 		if day.Status != unavailable {
-			message += fmt.Sprintf("*%s has availability!*\n", day.Date)
+			message += fmt.Sprintf("*%s has availability!*\\n", day.Date)
 			for _, spot := range day.Spots {
-				message += fmt.Sprintf("%v\n", spot)
+				message += fmt.Sprintf("%v\\n", spot)
 			}
 		}
 	}
