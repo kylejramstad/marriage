@@ -20,6 +20,10 @@ sudo go get golang.org/x/net/publicsuffix
 ```
 sudo git clone https://github.com/kylejramstad/marriage.git
 ```
+### Clean up project files
+```
+sudo mv ./marriage/* ./ && sudo rm -r marriage
+```
 
 ## Connect with IFTTT
 ### Make a webhooks event
@@ -54,6 +58,15 @@ Save the file and return to the command line.
 ```
 sudo go build main.go
 ```
+
+### Test IFTTT Notifications
+```
+./main -test
+```
+This is a test message.
+I hope this makes it to its destination.
+If not, then check to make sure your event name and IFTTTkey is correct.
+Also check to make sure you set up your webhooks applet correctly.
 
 ### Set up Crontab to Run Program Automatically
 ```crontab -e```

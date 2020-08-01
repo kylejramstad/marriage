@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"log"
 	"os"
+	"flag"
 
 	"golang.org/x/net/publicsuffix"
 )
@@ -22,6 +23,16 @@ const (
 )
 
 func main() {
+	boolPtr := flag.Bool("test",false,"Set to test sending a notification with IFTTT")
+	flag.Parse()
+	
+	if *boolPtr {
+		var s = "This is a test message.\\nI hope this makes it to its destination.\\nIf not, then check to make sure your event name and IFTTTkey is correct.\\nAlso check to make sure you set up your webhooks applet correctly."
+		fmt.Println("\n"+s+"\n")
+		sendNotice(s,nil)
+		os.Exit(0)
+	}
+
   var s,e = getMessage()
   var NotificationResponse = ""
   var runTime = time.Now().Format("2006-01-02 15:04:05")
@@ -66,8 +77,6 @@ func sendNotice(s string,e error) (string){
   }
   defer resp.Body.Close()
 
-  fmt.Println("response Status:", resp.Status)
-  fmt.Println("response Headers:", resp.Header)
   body, _ := ioutil.ReadAll(resp.Body)
   fmt.Println("response Body:", string(body))
 
